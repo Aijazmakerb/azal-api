@@ -1,6 +1,8 @@
 import express from "express";
 import cors from "cors";
-import { fetchEpisodes, fetchInfo, fetchPopular, fetchTopRated, fetchTrending, search } from "./src/meta/mydramalist.js";
+import { fetchEpisodesMetadata, fetchInfo, fetchPopular, fetchTopRated, fetchTrending, search } from "./src/meta/mydramalist.js";
+import { fetchEpisodes } from "./src/providers/dramacool.js";
+import { fetchSource } from "./src/extrtactors/asianload.js";
 
 const app = express();
 const port = 3001;
@@ -14,7 +16,8 @@ app.get('/', (req, res) => {
             episodes: "/episodes/:mdlid",
             trending: "/trending",
             popular: "/popular",
-            topRated: "/top-rated"
+            topRated: "/top-rated",
+            sources: "/sources/:episodeId"
         },
         author: "This api is developed and created by AijaZ"
     })
@@ -34,9 +37,9 @@ app.get('/info/:id', async (req, res) => {
     res.status(200).json(data)
 })
 
-app.get('/episodes/:id', async (req, res) => {
+app.get('/content-metadata/:id', async (req, res) => {
     const id = req.params.id;
-    const data = await fetchEpisodes(id);
+    const data = await fetchEpisodesMetadata(id);
 
     res.status(200).json(data)
 })
@@ -55,6 +58,20 @@ app.get('/popular', async (req, res) => {
 
 app.get('/top-rated', async (req, res) => {
     const data = await fetchTopRated();
+
+    res.status(200).json(data)
+})
+
+app.get('/episodes/:id', async (req, res) => {
+    const id = req.params.id;
+    const data = await fetchEpisodes(id);
+
+    res.status(200).json(data)
+})
+
+app.get('/sources/:id', async (req, res) => {
+    const id = req.params.id;
+    const data = await fetchSource(id);
 
     res.status(200).json(data)
 })

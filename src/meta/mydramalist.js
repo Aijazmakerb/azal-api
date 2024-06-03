@@ -9,7 +9,7 @@ export async function fetchInfo(id) {
 
     const title = $('h1.film-title a').text()
     const nativeTitle = $('ul.list.m-a-0').find('[class="list-item p-a-0"]').eq(0).find('a').text()
-    const synopsis = $('div.show-synopsis').text().split('(Source:')[0].trim()
+    const synopsis = $('div.show-synopsis p').text().split('Edit Translation')[0].trim()
     const img = $('div.col-sm-4.film-cover.cover').find('a.block').find('img').attr('src').replace(/(c)(?=\.jpg)/, "f")
     const rating = $('div.box.deep-orange').text()
 
@@ -17,16 +17,24 @@ export async function fetchInfo(id) {
     const year = $('h1.film-title').text().match(/\(([^)]+)\)/)[1]
     const type = $('ul.list.m-a-0.hidden-md-up').find('li').eq(1).text().split(':')[1].trim()
 
-    let totalEpisodes = ""
-    if (type == "Drama") {
-        totalEpisodes = $('ul.list.m-b-0').find('li').eq(2).find('b').text()
-        totalEpisodes = totalEpisodes.includes('Episodes:') ? $('ul.list.m-b-0').find('li').eq(2).text().split(':')[1].trim() : 'N/A'
-    } else {
-        totalEpisodes = "1";
+    const totalEpisodes = type == 'Drama' ? parseInt($('ul.list.m-b-0').find('li').eq(2).text().split(':')[1].trim()) : 1;
+
+    let currentEpisode = 0;
+    const ep$ = load(await (await axios.get(`${baseUrl}/${id}/episodes`)).data);
+    if(type == 'Drama')
+    {
+        ep$('div.episodes.clear.m-t').find('div.col-xs-12.col-sm-6.col-md-4.p-a.episode').each((index, element) => {
+            if($(element).find('div.cover').attr()['class'].includes("missing")) return;
+            currentEpisode++;
+        })
+    }else if(type !== 'Drama' && !isUpcoming(ep$))
+    {
+        currentEpisode = 1;
     }
 
-    const duration = $('ul.list.m-b-0').find('li').eq(type == "Drama" ? 6 : 3).text().split(':')[1].trim()
-    const contentRating = $('ul.list.m-b-0').find('li').eq(type == "Drama" ? 7 : 4).text().split(':')[1].trim()
+    const status = currentEpisode == totalEpisodes ? "Completed" : "Releasing";
+    const duration = !isUpcoming($) ? $('ul.list.m-b-0').find('li').eq(type == "Drama" ? 6 : 3).text().split(':')[1].trim() : null 
+    const contentRating = !isUpcoming($) ? $('ul.list.m-b-0').find('li').eq(type == "Drama" ? 7 : 4).text().split(':')[1].trim() : null
 
     let alternateTitle = []
     let genres = []
@@ -85,7 +93,9 @@ export async function fetchInfo(id) {
         details: {
             country,
             type,
+            status,
             year,
+            currentEpisode,
             totalEpisodes,
             duration,
             contentRating
@@ -98,13 +108,14 @@ export async function fetchInfo(id) {
     return data
 }
 
-export async function fetchEpisodes(id) {
+export async function fetchEpisodesMetadata(id) {
     const html = await (await axios.get(`${baseUrl}/${id}/episodes`)).data;
     const $ = load(html);
 
     let data = []
 
     $('div.episodes.clear.m-t').find('div.col-xs-12.col-sm-6.col-md-4.p-a.episode').each((index, element) => {
+        if($(element).find('div.cover').attr()['class'].includes("missing")) return;
         const title = $(element).find('h2.title a.text-primary').text()
         const img = $(element).find('div.cover a img').attr('data-src').replace(/(m)(?=\.jpg)/, "f")
         const description = $(element).find('div.summary.hide').text()
@@ -198,4 +209,39 @@ export async function search(query) {
         }
     })
     return data;
+}
+
+export const getBasicInfoById = async(id) => {
+    const html = await (await axios.get(`${baseUrl}/${id}/episodes`)).data;
+    const $ = load(html);
+
+    const title = $('h1.film-title').text()
+    const type = $('ul.list.m-b-0').find('li').eq(0).find('b.inline').text().replace(':', '')
+
+    if(type !== 'Drama' && isUpcoming($)) return { title, status: 'Releasing', type}
+
+    const totalEpisodes = type == 'Drama' ? parseInt($('ul.list.m-b-0').find('li').eq(2).text().split(':')[1].trim()) : 1;
+
+    let currentEpisode = 0;
+
+    if(type == 'Drama')
+    {
+        $('div.episodes.clear.m-t').find('div.col-xs-12.col-sm-6.col-md-4.p-a.episode').each((index, element) => {
+            if($(element).find('div.cover').attr()['class'].includes("missing")) return;
+            currentEpisode++;
+        })
+    }else{
+        currentEpisode = 1;
+    }
+
+    const status = currentEpisode == totalEpisodes ? "Completed" : "Releasing";
+
+    return { title, status, type };
+}
+
+const isUpcoming = ($) => {
+    //checking by score
+    const score = $('div.box.clear.hidden-sm-down').eq(1).find('ul.list.m-b-0').find('li').eq(0).find('span').text()
+
+    return score.includes('(scored by 0 users)')
 }
