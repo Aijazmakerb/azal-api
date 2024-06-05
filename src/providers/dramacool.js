@@ -34,6 +34,30 @@ export async function fetchEpisodes(id)
     return episodes;
 }
 
+export async function fetchRecentAdded()
+{
+    const html = await (await axios.get(`${baseUrl}/recently-added`)).data;
+    const $ = load(html);
+
+    let data = [];
+
+    $('ul.switch-block.list-episode-item').find('li').each((index, element) => {
+        const id = $(element).find('a').attr('href');
+        const img = $(element).find('img').attr('data-original');
+        const title = $(element).find('h3').text().replace(/\s*\(.*?\)\s*/g, '').trim();
+        const epNumber = $(element).find('span.ep').text().replace(/\D/g, '');
+
+        data.push({
+            id,
+            img,
+            title,
+            epNumber
+        })
+    })
+
+    return data;
+}
+
 export async function getSourceUrlById(id)
 {
     const html = await (await axios.get(`${baseUrl}/${id}`)).data;

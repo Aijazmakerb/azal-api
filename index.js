@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import { fetchEpisodesMetadata, fetchInfo, fetchPopular, fetchTopRated, fetchTrending, search } from "./src/meta/mydramalist.js";
-import { fetchEpisodes } from "./src/providers/dramacool.js";
+import { fetchEpisodes, fetchRecentAdded } from "./src/providers/dramacool.js";
 import { fetchSource } from "./src/extrtactors/asianload.js";
 
 const app = express();
@@ -14,6 +14,7 @@ app.get('/', (req, res) => {
             search: "/search/:query",
             info: "/info/:mdlid",
             episodes: "/episodes/:mdlid",
+            recent: "/recently-added",
             trending: "/trending",
             popular: "/popular",
             topRated: "/top-rated",
@@ -40,6 +41,12 @@ app.get('/info/:id', async (req, res) => {
 app.get('/content-metadata/:id', async (req, res) => {
     const id = req.params.id;
     const data = await fetchEpisodesMetadata(id);
+
+    res.status(200).json(data)
+})
+
+app.get('/recently-added', async (req, res) => {
+    const data = await fetchRecentAdded();
 
     res.status(200).json(data)
 })
