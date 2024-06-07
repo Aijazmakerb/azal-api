@@ -11,6 +11,7 @@ export async function fetchInfo(id) {
     const nativeTitle = $('ul.list.m-a-0').find('[class="list-item p-a-0"]').eq(0).find('a').text()
     const synopsis = $('div.show-synopsis p').text().split('Edit Translation')[0].trim()
     const img = $('div.col-sm-4.film-cover.cover').find('a.block').find('img').attr('src').replace(/(c)(?=\.jpg)/, "f")
+    const bannerImage = $('div.box-body.photos').find('a img').attr('data-src').replace(/(s)(?=\.jpg)/, "f")
     const rating = $('div.box.deep-orange').text()
 
     const country = $('ul.list.m-b-0').find('li').eq(1).text().split(':')[1].trim()
@@ -83,6 +84,7 @@ export async function fetchInfo(id) {
     let data = {
         id,
         img,
+        bannerImage,
         titles: {
             title,
             nativeTitle,
