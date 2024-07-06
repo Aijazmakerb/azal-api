@@ -7,6 +7,8 @@ import { fetchSource } from "./src/extrtactors/asianload.js";
 const app = express();
 const port = 3001;
 
+app.use(cors())
+
 app.get('/', (req, res) => {
     res.status(200).json({
         intro: "Welcome to the official azal provider that runs on @ https://mydramalist.com/ : check the website @ `currently in development` ",
