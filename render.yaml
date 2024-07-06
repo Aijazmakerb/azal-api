@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: azal-api
+    env: docker
+    repo: https://github.com/Aijazmakerb/azal-api.git
+    plan: free
+    branch: main
+    buildCommand: 'npm install'
+    startCommand: 'node index.js'

@@ -202,11 +202,15 @@ export async function search(query) {
             const id = $(element).find('a.block').attr('href')
             const title = $(element).find('h6.text-primary.title a').text()
             const img = $(element).find('a.block img').attr('data-src').replace(/(s)(?=\.jpg)/, "f")
+            const type = $(element).find('span.text-muted').text().split(",")[0].split("-")[0].trim()
+            const year = $(element).find('span.text-muted').text().split(",")[0].split("-").pop().trim()
 
             data.push({
                 id,
                 title,
-                img
+                img,
+                type,
+                year
             })
         }
     })
